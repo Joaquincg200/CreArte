@@ -18,33 +18,33 @@ public class OrdersController {
         this.ordersServiceImpls = ordersServiceImpls;
     }
 
-    @PostMapping("api/orders/new")
+    @PostMapping("/api/orders/new")
     @Operation()
     public ResponseEntity<OrdersDTO> createOrder(@RequestBody CreateOrderRequest newOrder) {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.ordersServiceImpls.createOrder(newOrder));
     }
 
-    @PutMapping("api/orders/update/{id}")
+    @PutMapping("/api/orders/update/{id}")
     @Operation()
     public ResponseEntity<OrdersDTO> changeOrderStatus(@RequestBody CreateOrderRequest order, @PathVariable Long id) {
         return ResponseEntity.status(HttpStatus.OK).body(this.ordersServiceImpls.changeOrderStatus(id, order));
     }
 
-    @GetMapping("api/orders/{id}")
+    @GetMapping("/api/orders/{id}")
     @Operation()
-    public ResponseEntity<OrdersDTO> getOrderById(@RequestBody Long id) {
+    public ResponseEntity<OrdersDTO> getOrderById(@PathVariable Long id) {
         return ResponseEntity.status(HttpStatus.OK).body(this.ordersServiceImpls.getOrderById(id));
     }
 
-    @GetMapping("api/orders/user/{userId}")
+    @GetMapping("/api/orders/user/{userId}")
     @Operation()
-    public ResponseEntity<List<OrdersDTO>> getOrderByUserId(@RequestBody Long userId) {
+    public ResponseEntity<List<OrdersDTO>> getOrderByUserId(@PathVariable Long userId) {
         return ResponseEntity.status(HttpStatus.OK).body(this.ordersServiceImpls.getOrderByUserId(userId));
     }
 
-    @PutMapping("api/orders/cancel/{id}")
+    @PutMapping("/api/orders/cancel/{id}")
     @Operation()
-    public ResponseEntity<OrdersDTO> cancelOrder(@PathVariable Long id, CreateOrderRequest request) {
+    public ResponseEntity<OrdersDTO> cancelOrder(@PathVariable Long id, @RequestBody CreateOrderRequest request) {
         return ResponseEntity.status(HttpStatus.OK).body(this.ordersServiceImpls.cancelOrder(id, request));
     }
 

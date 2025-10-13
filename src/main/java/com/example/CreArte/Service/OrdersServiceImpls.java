@@ -54,7 +54,6 @@ public class OrdersServiceImpls implements IOrdersServiceImpls{
                 return null;
             }
         }
-//        products.stream().mapToDouble(Products::getPrice).sum();
 
         order.setTotal(total);
 
