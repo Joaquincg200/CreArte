@@ -53,6 +53,10 @@ public class OrdersServiceImpls implements IOrdersServiceImpls{
             if (products1.getStock() < item.getQuantity()) {
                 return null;
             }
+            if(products1.getStock() > item.getQuantity()){
+                int stock = products1.getStock() -item.getQuantity();
+                products1.setStock(stock);
+            }
         }
 
         order.setTotal(total);
@@ -87,7 +91,7 @@ public class OrdersServiceImpls implements IOrdersServiceImpls{
          Optional<Orders> optionalOrder = this.repositoryOrders.findById(id);
          if (optionalOrder.isPresent()){
              Orders order = optionalOrder.get();
-             if("CANCELLED".equals(order.getStatus()) || "DELIVERED".equals(order.getStatus())){
+             if("CANCELADO".equals(order.getStatus()) || "ENVIADO".equals(order.getStatus())){
                  return null;
              }
              order.setStatus(request.getStatus());
@@ -102,7 +106,7 @@ public class OrdersServiceImpls implements IOrdersServiceImpls{
         Optional<Orders> optionalOrder = this.repositoryOrders.findById(id);
         if (optionalOrder.isPresent()){
             Orders order = optionalOrder.get();
-            if ("DELIVERED".equals(order.getStatus())){
+            if ("ENVIADO".equals(order.getStatus())){
                 return null;
             }
             order.setStatus(StatusEnum.CANCELADO);

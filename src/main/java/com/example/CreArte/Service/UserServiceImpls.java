@@ -5,6 +5,7 @@ import com.example.CreArte.Entity.Users;
 import com.example.CreArte.Mapper.IMapperUsers;
 import com.example.CreArte.Repository.IRepositoryUsers;
 import com.example.CreArte.Request.CreateUserRequest;
+import com.example.CreArte.Request.LoginRequest;
 import com.example.CreArte.security.JwtUtil;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
@@ -89,11 +90,11 @@ public class UserServiceImpls implements IUserServiceImpls{
     }
 
     @Override
-    public UsersDTO login(String email, String password) {
-        Optional<Users> optionalUsers = this.repositoryUsers.findByEmail(email);
+    public UsersDTO login(LoginRequest request) {
+        Optional<Users> optionalUsers = this.repositoryUsers.findByEmail(request.getEmail());
         if (optionalUsers.isPresent()) {
             Users user = optionalUsers.get();
-            if(BCrypt.checkpw(password, user.getPassword())){
+            if(BCrypt.checkpw(request.getPassword(), user.getPassword())){
 
                 String token = this.jwtUtil.generateToken(user.getEmail(), user.getRole());
 

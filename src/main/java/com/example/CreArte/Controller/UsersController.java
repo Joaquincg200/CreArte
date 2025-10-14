@@ -2,6 +2,7 @@ package com.example.CreArte.Controller;
 
 import com.example.CreArte.Dto.UsersDTO;
 import com.example.CreArte.Request.CreateUserRequest;
+import com.example.CreArte.Request.LoginRequest;
 import com.example.CreArte.Service.UserServiceImpls;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
@@ -39,8 +40,8 @@ public class UsersController {
 
     @PostMapping("/api/users/login")
     @Operation(summary = "Login de usuario")
-    public ResponseEntity<UsersDTO> loginUser(@RequestBody String email, String password){
-        return ResponseEntity.status(HttpStatus.OK).body(this.userServiceImpls.login(email, password));
+    public ResponseEntity<UsersDTO> loginUser(@RequestBody LoginRequest request){
+        return ResponseEntity.status(HttpStatus.OK).body(this.userServiceImpls.login(request));
     }
 
     @DeleteMapping("/api/users/delete/{id}")
