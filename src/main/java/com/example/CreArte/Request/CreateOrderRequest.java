@@ -22,6 +22,10 @@ public class CreateOrderRequest {
         this.total = total;
     }
 
+    public CreateOrderRequest() {
+
+    }
+
     public long getIdUser() {
         return idUser;
     }

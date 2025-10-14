@@ -11,6 +11,8 @@ import com.example.CreArte.Repository.IRepositoryProducts;
 import com.example.CreArte.Repository.IRepositoryUsers;
 import com.example.CreArte.Request.CreateOrderRequest;
 import com.example.CreArte.Request.OrderItemsRequest;
+import com.example.CreArte.Request.UpdateStatusRequest;
+import org.apache.catalina.User;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -82,12 +84,12 @@ public class OrdersServiceImpls implements IOrdersServiceImpls{
 
     @Override
     public List<OrdersDTO> getOrderByUserId(Long userId) {
-        List<Orders> orders = this.repositoryOrders.findByIdUser_Id(userId);
+        List<Orders> orders = this.repositoryOrders.findByUserId(userId);
         return this.mapperOrders.ordersToOrdersDTO(orders);
     }
 
     @Override
-    public OrdersDTO changeOrderStatus(Long id, CreateOrderRequest request) {
+    public OrdersDTO changeOrderStatus(Long id, UpdateStatusRequest request) {
          Optional<Orders> optionalOrder = this.repositoryOrders.findById(id);
          if (optionalOrder.isPresent()){
              Orders order = optionalOrder.get();
@@ -102,19 +104,15 @@ public class OrdersServiceImpls implements IOrdersServiceImpls{
     }
 
     @Override
-    public OrdersDTO cancelOrder(Long id, CreateOrderRequest request) {
+    public OrdersDTO cancelOrder(Long id) {
         Optional<Orders> optionalOrder = this.repositoryOrders.findById(id);
         if (optionalOrder.isPresent()){
             Orders order = optionalOrder.get();
-            if ("ENVIADO".equals(order.getStatus())){
+            if ("ENVIADO".equals(order.getStatus()) || "CANCELADO".equals(order.getStatus())){
                 return null;
             }
             order.setStatus(StatusEnum.CANCELADO);
-            for (OrderItemsRequest item: request.getOrderItems()) {
-                Products products = this.repositoryProducts.findById(item.getProductId()).orElseThrow();
-                products.setStock(products.getStock() + item.getQuantity());
-                this.repositoryProducts.save(products);
-            }
+
             Orders cancelledOrder = this.repositoryOrders.save(order);
             return this.mapperOrders.orderToOrderDTO(cancelledOrder);
         }

@@ -2,6 +2,7 @@ package com.example.CreArte.Controller;
 
 import com.example.CreArte.Dto.OrdersDTO;
 import com.example.CreArte.Request.CreateOrderRequest;
+import com.example.CreArte.Request.UpdateStatusRequest;
 import com.example.CreArte.Service.OrdersServiceImpls;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
@@ -26,7 +27,7 @@ public class OrdersController {
 
     @PutMapping("/api/orders/update/{id}")
     @Operation()
-    public ResponseEntity<OrdersDTO> changeOrderStatus(@RequestBody CreateOrderRequest order, @PathVariable Long id) {
+    public ResponseEntity<OrdersDTO> changeOrderStatus(@RequestBody UpdateStatusRequest order, @PathVariable Long id) {
         return ResponseEntity.status(HttpStatus.OK).body(this.ordersServiceImpls.changeOrderStatus(id, order));
     }
 
@@ -44,8 +45,8 @@ public class OrdersController {
 
     @PutMapping("/api/orders/cancel/{id}")
     @Operation()
-    public ResponseEntity<OrdersDTO> cancelOrder(@PathVariable Long id, @RequestBody CreateOrderRequest request) {
-        return ResponseEntity.status(HttpStatus.OK).body(this.ordersServiceImpls.cancelOrder(id, request));
+    public ResponseEntity<OrdersDTO> cancelOrder(@PathVariable Long id) {
+        return ResponseEntity.status(HttpStatus.OK).body(this.ordersServiceImpls.cancelOrder(id));
     }
 
 
