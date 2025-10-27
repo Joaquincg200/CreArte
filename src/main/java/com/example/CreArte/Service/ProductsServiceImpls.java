@@ -7,8 +7,8 @@ import com.example.CreArte.Mapper.IMapperProducts;
 import com.example.CreArte.Repository.IRepositoryProducts;
 import com.example.CreArte.Repository.IRepositoryUsers;
 import com.example.CreArte.Request.CreateProductRequest;
-import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import com.example.CreArte.exception.ExceptionProductsNotFound;
+import com.example.CreArte.exception.ExceptionUsersNotFound;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -39,7 +39,7 @@ public class ProductsServiceImpls implements IProductsServiceImpls {
         product.setCategory(request.getCategory());
         product.setStock(request.getStock());
 
-        if(!userId.isEmpty()){
+        if(userId.isEmpty()){
             product.setIdUser(userId.get());
         }
 
@@ -65,7 +65,7 @@ public class ProductsServiceImpls implements IProductsServiceImpls {
             Products savedProduct = this.repositoryProducts.save(products);
             return this.mapperProducts.productToProductDTO(savedProduct);
         }
-        return null;
+        throw new ExceptionProductsNotFound("Producto no encontrado con id: " + id);
     }
 
     @Override
@@ -76,7 +76,7 @@ public class ProductsServiceImpls implements IProductsServiceImpls {
             this.repositoryProducts.delete(products);
             return this.mapperProducts.productToProductDTO(products);
         }
-        return null;
+        throw new ExceptionProductsNotFound("Producto no encontrado con id: " + id);
     }
 
     @Override
@@ -90,7 +90,7 @@ public class ProductsServiceImpls implements IProductsServiceImpls {
         if (!listProductsUser.isEmpty()) {
             return this.mapperProducts.productsToProductsDTO(listProductsUser);
         }
-        return List.of();
+        throw new ExceptionUsersNotFound("El usuario con id: " + idUser + " no tiene productos creados");
     }
 
     @Override
@@ -111,16 +111,7 @@ public class ProductsServiceImpls implements IProductsServiceImpls {
         return List.of();
     }
 
-    @Override
-    public void updateStockAfterOrder(Long productId, int quantityPurchased) {
-        Optional<Products> optionalProduct = this.repositoryProducts.findById(productId);
-        if (optionalProduct.isPresent()) {
-            Products product = optionalProduct.get();
-            int newStock = product.getStock() - quantityPurchased;
-            product.setStock(newStock);
-            this.repositoryProducts.save(product);
-        }
-    }
+
 
 
 }

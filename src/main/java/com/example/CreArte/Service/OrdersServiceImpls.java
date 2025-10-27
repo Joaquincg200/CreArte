@@ -12,6 +12,7 @@ import com.example.CreArte.Repository.IRepositoryUsers;
 import com.example.CreArte.Request.CreateOrderRequest;
 import com.example.CreArte.Request.OrderItemsRequest;
 import com.example.CreArte.Request.UpdateStatusRequest;
+import com.example.CreArte.exception.ExceptionUsersNotFound;
 import org.apache.catalina.User;
 import org.springframework.stereotype.Service;
 
@@ -38,8 +39,13 @@ public class OrdersServiceImpls implements IOrdersServiceImpls{
     public OrdersDTO createOrder(CreateOrderRequest request) {
         Orders order = new Orders();
 
-        Users user = repositoryUsers.findById(request.getIdUser()).orElseThrow();
-        order.setIdUser(user);
+        Optional<Users> usersOptional = repositoryUsers.findById(request.getIdUser());
+        if(usersOptional.isPresent()){
+            Users user = usersOptional.get();
+            order.setIdUser(user);
+        }else{
+            throw new ExceptionUsersNotFound("Usuario no encontrado con id: " + request.getIdUser());
+        }
 
         List<Products> products = new ArrayList<>();
         for (Long id : request.getIdProducts()) {

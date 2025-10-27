@@ -6,6 +6,9 @@ import com.example.CreArte.Mapper.IMapperUsers;
 import com.example.CreArte.Repository.IRepositoryUsers;
 import com.example.CreArte.Request.CreateUserRequest;
 import com.example.CreArte.Request.LoginRequest;
+import com.example.CreArte.exception.ExceptionUsersAlredyExists;
+import com.example.CreArte.exception.ExceptionUsersNotFound;
+import com.example.CreArte.exception.ExceptionUsersUnauthorized;
 import com.example.CreArte.security.JwtUtil;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
@@ -30,7 +33,12 @@ public class UserServiceImpls implements IUserServiceImpls{
     public UsersDTO registerUser(CreateUserRequest request) {
         Users user = new Users();
         user.setName(request.getName());
+
+        if(this.repositoryUsers.existsByEmail(request.getEmail())){
+            throw new ExceptionUsersAlredyExists("El usuario con el email "+ request.getEmail() + " ya existe.");
+        }
         user.setEmail(request.getEmail());
+
         user.setPassword(BCrypt.hashpw(request.getPassword(), BCrypt.gensalt()));
         user.setRole(request.getRole());
         user.setRegistration_date(LocalDate.now());
@@ -51,7 +59,7 @@ public class UserServiceImpls implements IUserServiceImpls{
             Users savedUser = this.repositoryUsers.save(user);
             return this.mapperUsers.userToUsserDTO(savedUser);
         }else{
-            return null;
+            throw  new ExceptionUsersNotFound("El usuario con el id "+ id + " no fue encontrado.");
         }
 
     }
@@ -64,18 +72,14 @@ public class UserServiceImpls implements IUserServiceImpls{
             this.repositoryUsers.delete(user);
             return this.mapperUsers.userToUsserDTO(user);
         }else{
-            return null;
+            throw new ExceptionUsersNotFound("El usuario con el id "+ id + " no fue encontrado.");
         }
     }
 
     @Override
     public List<UsersDTO> getUsersAll() {
         List<Users> users = this.repositoryUsers.findAll();
-        if (!users.isEmpty()) {
-            return this.mapperUsers.usersDTOToUsers(users);
-        } else {
-            return null;
-        }
+        return this.mapperUsers.usersDTOToUsers(users);
     }
 
     @Override
@@ -85,7 +89,7 @@ public class UserServiceImpls implements IUserServiceImpls{
             Users user = optionalUser.get();
             return this.mapperUsers.userToUsserDTO(user);
         }else{
-            return null;
+            throw new ExceptionUsersNotFound("El usuario con el id "+ id + " no fue encontrado.");
         }
     }
 
@@ -104,11 +108,11 @@ public class UserServiceImpls implements IUserServiceImpls{
 
                 return userLogged;
             }else{
-                return null;
+                throw new ExceptionUsersUnauthorized("Contraseña incorrecta para el usuario con email "+ request.getEmail());
             }
 
         }else{
-            return null;
+            throw new ExceptionUsersUnauthorized(("El usuario con el email "+ request.getEmail() + " no fue encontrado."));
         }
     }
 }

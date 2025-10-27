@@ -13,7 +13,7 @@ public interface IProductsServiceImpls {
     List<ProductsDTO> getProductsByUserId(long userId);
     List<ProductsDTO> getProductsByCategory(String category);
     List<ProductsDTO> searchProducts(String keyword);
-    void updateStockAfterOrder(Long productId, int quantityPurchased);
+
 
 
 
