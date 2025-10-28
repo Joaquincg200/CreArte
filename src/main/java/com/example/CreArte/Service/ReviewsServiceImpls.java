@@ -10,6 +10,8 @@ import com.example.CreArte.Repository.IRepositoryProducts;
 import com.example.CreArte.Repository.IRepositoryReviews;
 import com.example.CreArte.Repository.IRepositoryUsers;
 import com.example.CreArte.Request.CreateReviewRequest;
+import com.example.CreArte.exception.ExceptionReviewsNotFound;
+import org.apache.catalina.User;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -35,16 +37,22 @@ public class ReviewsServiceImpls implements IReviewsServiceImpls{
 
     @Override
     public ReviewsDTO createReview(CreateReviewRequest request) {
-        Users user = repositoryUsers.findById(request.getUserId())
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-        Products product = repositoryProducts.findById(request.getProductId())
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+        Optional<Users> usersOptional = repositoryUsers.findById(request.getUserId());
+
+        Optional<Products> productsOptional = repositoryProducts.findById(request.getProductId());
 
         Reviews review = new Reviews();
         review.setRating(request.getRating());
         review.setComment(request.getComment());
-        review.setUserId(user);
-        review.setProductId(product);
+        if(usersOptional.isPresent()){
+            Users user = usersOptional.get();
+            review.setUserId(user);
+        }
+        if(productsOptional.isPresent()){
+            Products product = productsOptional.get();
+            review.setProductId(product);
+        }
+
         review.setCreatedAt(LocalDateTime.now());
 
         boolean hasPurchased = repositoryOrders.existBoughtProduct(request.getUserId(), request.getProductId());
@@ -74,7 +82,7 @@ public class ReviewsServiceImpls implements IReviewsServiceImpls{
             repositoryReviews.delete(review);
             return this.mapperReviews.reviewToReviewDTO(review);
         }
-        return null;
+        throw new ExceptionReviewsNotFound("No se ha encontrado ningun comentario con esa id " + reviewId);
     }
 
 

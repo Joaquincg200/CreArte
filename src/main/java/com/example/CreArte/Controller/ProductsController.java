@@ -18,25 +18,25 @@ public class ProductsController {
         this.productsServiceImpls = productsServiceImpls;
     }
 
-    @GetMapping("/products")
+    @GetMapping("/api/products")
     @Operation(summary = "Recibe todos los productos")
     public ResponseEntity<List<ProductsDTO>> getAllProducts() {
         return ResponseEntity.status(HttpStatus.OK).body(this.productsServiceImpls.getAllProducts());
     }
 
-    @PostMapping("/products/new")
+    @PostMapping("/api/products/new")
     @Operation(summary = "Registra un nuevo producto")
     public ResponseEntity<ProductsDTO> newProduct(@RequestBody CreateProductRequest newProduct) {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.productsServiceImpls.newProduct(newProduct));
     }
 
-    @PutMapping("/products/update/{id}")
+    @PutMapping("/api/products/update/{id}")
     @Operation(summary = "Actualiza un producto por su id")
     public ResponseEntity<ProductsDTO> updateProduct(@RequestBody CreateProductRequest product, @PathVariable long id){
         return ResponseEntity.status(HttpStatus.OK).body(this.productsServiceImpls.updateProduct(product, id));
     }
 
-    @DeleteMapping("/products/delete/{id}")
+    @DeleteMapping("/api/products/delete/{id}")
     @Operation(summary = "Elimina un producto por su id")
     public ResponseEntity<ProductsDTO> deleteProduct(@PathVariable long id){
         return ResponseEntity.status(HttpStatus.OK).body(this.productsServiceImpls.deleteProduct(id));

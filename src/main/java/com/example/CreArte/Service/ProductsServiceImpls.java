@@ -30,7 +30,7 @@ public class ProductsServiceImpls implements IProductsServiceImpls {
 
     @Override
     public ProductsDTO newProduct(CreateProductRequest request) {
-        Optional<Users> userId = this.repositoryUsers.findById(request.getUserId());
+        Optional<Users> usersOptional = this.repositoryUsers.findById(request.getUserId());
 
         Products product = new Products();
         product.setName(request.getName());
@@ -39,8 +39,8 @@ public class ProductsServiceImpls implements IProductsServiceImpls {
         product.setCategory(request.getCategory());
         product.setStock(request.getStock());
 
-        if(userId.isEmpty()){
-            product.setIdUser(userId.get());
+        if(usersOptional.isPresent()){
+            product.setIdUser(usersOptional.get());
         }
 
         product.setImage(request.getImage());
@@ -110,8 +110,5 @@ public class ProductsServiceImpls implements IProductsServiceImpls {
         }
         return List.of();
     }
-
-
-
 
 }

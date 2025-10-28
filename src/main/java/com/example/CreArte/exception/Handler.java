@@ -36,9 +36,29 @@ public class Handler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
+    @ExceptionHandler(ExceptionNotStock.class)
+    public ResponseEntity<ErrorResponse> handleCustomException(ExceptionNotStock ex) {
+        ErrorResponse error = new ErrorResponse(ex.getMessage(), "Error", 409);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
 
+    @ExceptionHandler(ExceptionOrderNotFound.class)
+    public ResponseEntity<ErrorResponse> handleCustomException(ExceptionOrderNotFound ex) {
+        ErrorResponse error = new ErrorResponse(ex.getMessage(), "Error", 404);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
 
+    @ExceptionHandler(ExceptionChangeOrderStatus.class)
+    public ResponseEntity<ErrorResponse> handleCustomException(ExceptionChangeOrderStatus ex) {
+        ErrorResponse error = new ErrorResponse(ex.getMessage(), "Error", 409);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
 
+    @ExceptionHandler(ExceptionReviewsNotFound.class)
+    public ResponseEntity<ErrorResponse> handleCustomException(ExceptionReviewsNotFound ex) {
+        ErrorResponse error = new ErrorResponse(ex.getMessage(), "Error", 404);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<FieldErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {

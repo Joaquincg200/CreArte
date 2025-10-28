@@ -12,6 +12,9 @@ import com.example.CreArte.Repository.IRepositoryUsers;
 import com.example.CreArte.Request.CreateOrderRequest;
 import com.example.CreArte.Request.OrderItemsRequest;
 import com.example.CreArte.Request.UpdateStatusRequest;
+import com.example.CreArte.exception.ExceptionChangeOrderStatus;
+import com.example.CreArte.exception.ExceptionNotStock;
+import com.example.CreArte.exception.ExceptionOrderNotFound;
 import com.example.CreArte.exception.ExceptionUsersNotFound;
 import org.apache.catalina.User;
 import org.springframework.stereotype.Service;
@@ -59,7 +62,7 @@ public class OrdersServiceImpls implements IOrdersServiceImpls{
         for (OrderItemsRequest item: request.getOrderItems()) {
             Products products1 = this.repositoryProducts.findById(item.getProductId()).orElseThrow();
             if (products1.getStock() < item.getQuantity()) {
-                return null;
+                throw new ExceptionNotStock("No hay suficiente stock");
             }
             if(products1.getStock() > item.getQuantity()){
                 int stock = products1.getStock() -item.getQuantity();
@@ -85,7 +88,7 @@ public class OrdersServiceImpls implements IOrdersServiceImpls{
         if (order.isPresent()){
             return this.mapperOrders.orderToOrderDTO(order.get());
         }
-        return null;
+        throw new ExceptionOrderNotFound("No se ha encontrado el pedido con la id " + id);
     }
 
     @Override
@@ -100,13 +103,13 @@ public class OrdersServiceImpls implements IOrdersServiceImpls{
          if (optionalOrder.isPresent()){
              Orders order = optionalOrder.get();
              if("CANCELADO".equals(order.getStatus()) || "ENVIADO".equals(order.getStatus())){
-                 return null;
+                 throw new ExceptionChangeOrderStatus("No se ha podido modificar el estado del pedidox porque ha sido enviado o cancelado");
              }
              order.setStatus(request.getStatus());
              Orders updatedOrder = this.repositoryOrders.save(order);
              return this.mapperOrders.orderToOrderDTO(updatedOrder);
          }
-        return null;
+        throw new ExceptionOrderNotFound("No se ha encontrado ningun pedido con la id " + id);
     }
 
     @Override
@@ -115,13 +118,13 @@ public class OrdersServiceImpls implements IOrdersServiceImpls{
         if (optionalOrder.isPresent()){
             Orders order = optionalOrder.get();
             if ("ENVIADO".equals(order.getStatus()) || "CANCELADO".equals(order.getStatus())){
-                return null;
+                throw new ExceptionChangeOrderStatus("No se ha podido cancelar el pedido porque se ha enviado o cancelado");
             }
             order.setStatus(StatusEnum.CANCELADO);
 
             Orders cancelledOrder = this.repositoryOrders.save(order);
             return this.mapperOrders.orderToOrderDTO(cancelledOrder);
         }
-        return null;
+        throw new ExceptionOrderNotFound("No se ha econtrado el pedido con la id " + id);
     }
 }
