@@ -13,10 +13,8 @@ import com.example.CreArte.Request.CreateOrderRequest;
 import com.example.CreArte.Request.OrderItemsRequest;
 import com.example.CreArte.Request.UpdateStatusRequest;
 import com.example.CreArte.exception.ExceptionChangeOrderStatus;
-import com.example.CreArte.exception.ExceptionNotStock;
 import com.example.CreArte.exception.ExceptionOrderNotFound;
 import com.example.CreArte.exception.ExceptionUsersNotFound;
-import org.apache.catalina.User;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -52,26 +50,37 @@ public class OrdersServiceImpls implements IOrdersServiceImpls{
 
         List<Products> products = new ArrayList<>();
         for (Long id : request.getIdProducts()) {
-            Products product = repositoryProducts.findById(id).orElseThrow();
-            products.add(product);
+            Optional<Products> productsOptional = repositoryProducts.findById(id);
+            if(productsOptional.isPresent()){
+                Products product = productsOptional.get();
+                products.add(product);
+            } else{
+                throw new ExceptionOrderNotFound("Producto no encontrado con id: " + id);
+            }
         }
-
         order.setIdProducts(products);
 
         double total = 00.0;
+
         for (OrderItemsRequest item: request.getOrderItems()) {
-            Products products1 = this.repositoryProducts.findById(item.getProductId()).orElseThrow();
-            if (products1.getStock() < item.getQuantity()) {
-                throw new ExceptionNotStock("No hay suficiente stock");
+            Optional<Products> productsOptional = this.repositoryProducts.findById(item.getProductId());
+
+            if(productsOptional.isPresent()){
+                Products products1 = productsOptional.get();
+                total += products1.getPrice() * item.getQuantity();
+
+                if(products1.getStock() >= item.getQuantity()){
+                    int stock = products1.getStock() - item.getQuantity();
+                    products1.setStock(stock);
+                    repositoryProducts.save(products1);
+                }
+            } else{
+                throw new ExceptionOrderNotFound("Producto no encontrado con id: " + item.getProductId());
             }
-            if(products1.getStock() > item.getQuantity()){
-                int stock = products1.getStock() -item.getQuantity();
-                products1.setStock(stock);
-            }
+
         }
 
         order.setTotal(total);
-
         order.setStatus(StatusEnum.PENDIENTE);
         order.setOrder_Date(LocalDate.now());
 
@@ -120,6 +129,11 @@ public class OrdersServiceImpls implements IOrdersServiceImpls{
             if ("ENVIADO".equals(order.getStatus()) || "CANCELADO".equals(order.getStatus())){
                 throw new ExceptionChangeOrderStatus("No se ha podido cancelar el pedido porque se ha enviado o cancelado");
             }
+            for(Products product: order.getIdProducts()){
+                product.setStock((product.getStock()) + 1);
+                repositoryProducts.save(product);
+            }
+
             order.setStatus(StatusEnum.CANCELADO);
 
             Orders cancelledOrder = this.repositoryOrders.save(order);
