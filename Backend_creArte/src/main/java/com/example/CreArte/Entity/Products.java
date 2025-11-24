@@ -24,6 +24,8 @@ public class Products {
     @Enumerated(EnumType.STRING)
     private CategoryEnum category;
     private int stock;
+    @Lob
+    @Column(columnDefinition = "MEDIUMTEXT")
     private String image;
     private LocalDate createdAt;
     private LocalDate updatedAt;

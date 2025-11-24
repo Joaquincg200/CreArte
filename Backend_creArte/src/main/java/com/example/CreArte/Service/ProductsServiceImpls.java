@@ -111,4 +111,16 @@ public class ProductsServiceImpls implements IProductsServiceImpls {
         return List.of();
     }
 
+    @Override
+    public ProductsDTO getProductById(long id) {
+        Optional<Products> optionalProduct = this.repositoryProducts.findById(id);
+        if (optionalProduct.isPresent()) {
+            Products products = optionalProduct.get();
+            return this.mapperProducts.productToProductDTO(products);
+        }else{
+            throw new ExceptionProductsNotFound("Producto no encontrado con id: " + id);
+        }
+    }
+
+
 }

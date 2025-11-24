@@ -29,18 +29,21 @@ public class SecurityConfig{
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",
-                                "/webjars/**"
+                                "/webjars/**",
+                                "/api/products/new"
                         ).permitAll()
                         .requestMatchers("/api/**").permitAll()
 
                         .requestMatchers("/api/orders/**",
                                 "/api/reviews/product/**",
-                                "/api/reviews/user/**").hasAuthority("COMPRADOR")
+                                "/api/reviews/user/**",
+                                "/api/product/**").hasAuthority("COMPRADOR")
 
                         .requestMatchers("/api/products/new",
                                 "/api/products/update/**",
                                 "/api/products/delete/**",
-                                "/api/orders/update/**").hasAuthority("VENDEDOR")
+                                "/api/orders/update/**",
+                                "/api/products/user/{idUser}").hasAuthority("VENDEDOR")
 
                         .requestMatchers("/api/users").hasAuthority("ADMIN")
 

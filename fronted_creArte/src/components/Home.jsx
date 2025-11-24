@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import api from "../api/api";
 import Header from "./Header";
 import Footer from "./Footer";
+import { Link } from "react-router-dom";
 
 function Home() {
   const [products, setProducts] = useState([]);
@@ -18,19 +19,22 @@ function Home() {
   }, []);
   return (
     <div>
-      <header>
+      <header style={{ position: "sticky", top: "0", zIndex: "1000" }}>
         <Header />
       </header>
-
 
       <main style={{ backgroundColor: "#FFFDF6" }}>
         {/* Imagen */}
         <div className="container p-3 position-relative">
           <img
             className="img-fluid w-100 rounded"
-            src="/img/imgi_4_generated-image-de879b25-a970-4b20-935f-866d61d738ce.jpg"
+            src="img/imgi_4_generated-image-de879b25-a970-4b20-935f-866d61d738ce.jpg"
             alt="Banner principal de creArte"
-            style={{ objectFit: "cover", height: "auto" }}
+            style={{
+              objectFit: "cover",
+              height: "auto",
+              filter: "grayscale(35%) blur(2px)",
+            }}
           />
           {/* Texto encima de la imagen */}
           <div
@@ -40,7 +44,7 @@ function Home() {
             <h2
               className="fw-bold display-5"
               style={{
-                color: "#E3B23C",
+                color: "#FAF6F0",
                 textShadow: "0 2px 6px rgba(0,0,0,0.4)",
               }}
             >
@@ -49,37 +53,63 @@ function Home() {
             <p
               className="lead mb-4"
               style={{
-                color: "#FFFDF6",
-                textShadow: "0 2px 4px rgba(0,0,0,0.6)",
+                color: "#000000",
+                textShadow: "0 2px 6px rgba(0,0,0,0.6)",
               }}
             >
               Descubre productos de alta calidad elaborados por talentosos
               artesanos de todo el mundo.
             </p>
-            <button className="btn btn-outline-light px-4 py-2 fw-semibold rounded-pill">
+            <button
+              className="btn-hero btn px-4 py-2 fw-semibold rounded-pill"
+              style={{
+                backgroundColor: "#D28C64",
+                color: "#FAF6F0",
+                border: "none",
+              }}
+            >
               Explora nuestra colección
             </button>
           </div>
         </div>
-        
+
         {/* Productos sugeridos*/}
-        <div className="container p-3" style={{ color: "#2B2B2B" }}>
-          <h2>Productos sugeridos</h2>
-          <div className="container-fluid row">
+        <div className="container p-3">
+          <div className="row g-3">
+            <h1>Productos Sugeridos</h1>
             {products.map((product) => (
-              <div className="col-12 col-sm-6 col-md-4 col-lg-3">
-                <img
-                  className="img-fluid rounded"
-                  src="img/shopping.webp"
-                  alt=""
-                />
-                <h5 className="m-0" style={{ color: "#E3B23C" }}>
-                  {product.name}
-                </h5>
-                <h6 className="m-0" style={{ color: "#E87A68" }}>
-                  {product.description}
-                </h6>
-                <h6 className="m-0">{product.price}€</h6>
+              <div className="col-lg-3 col-md-6" key={product.id}>
+                <Link
+                  to={`/product/${product.id}`}
+                  className="text-decoration-none"
+                >
+                  <div
+                    className="card h-100 shadow-sm"
+                    style={{
+                      border: "2px solid #C77C57",
+                      borderRadius: "12px",
+                      backgroundColor: "#FAF7F2",
+                    }}
+                  >
+                    <img
+                      src={product.image || "img/shopping.webp"}
+                      className="card-img-top img-fluid rounded-top"
+                      alt={product.name}
+                      style={{ height: "200px", objectFit: "cover" }}
+                    />
+                    <div className="card-body d-flex flex-column">
+                      <h5 className="card-title" style={{ color: "#6B4F3A" }}>
+                        {product.name}
+                      </h5>
+                      <p
+                        className="card-text fw-bold mt-auto"
+                        style={{ color: "#C77C57" }}
+                      >
+                        {product.price} €
+                      </p>
+                    </div>
+                  </div>
+                </Link>
               </div>
             ))}
           </div>

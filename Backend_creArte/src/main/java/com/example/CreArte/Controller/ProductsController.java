@@ -42,21 +42,27 @@ public class ProductsController {
         return ResponseEntity.status(HttpStatus.OK).body(this.productsServiceImpls.deleteProduct(id));
     }
 
-    @GetMapping("/products/{category}")
+    @GetMapping("/api/products/{category}")
     @Operation(summary = "Recibe todos los productos por categoria")
     public ResponseEntity<List<ProductsDTO>> getProductsByCategory(@PathVariable String category){
         return ResponseEntity.status(HttpStatus.OK).body(this.productsServiceImpls.getProductsByCategory(category));
     }
 
-    @GetMapping("/products/user/{idUser}")
+    @GetMapping("/api/products/user/{idUser}")
     @Operation(summary = "Recibe todos los productos por id de usuario")
-    public ResponseEntity<List<ProductsDTO>> getProductsByUserId(@PathVariable long id){
-        return ResponseEntity.status(HttpStatus.OK).body(this.productsServiceImpls.getProductsByUserId(id));
+    public ResponseEntity<List<ProductsDTO>> getProductsByUserId(@PathVariable long idUser){
+        return ResponseEntity.status(HttpStatus.OK).body(this.productsServiceImpls.getProductsByUserId(idUser));
     }
-    @GetMapping("/products/search/{name}")
+    @GetMapping("/api/products/search/{name}")
     @Operation(summary = "Recibe todos los productos por nombre")
     public ResponseEntity<List<ProductsDTO>> getProductsByName(@PathVariable String name){
         return ResponseEntity.status(HttpStatus.OK).body(this.productsServiceImpls.searchProducts(name));
+    }
+
+    @GetMapping("/api/product/{id}")
+    @Operation(summary = "Recibe un producto por su id")
+    public ResponseEntity<ProductsDTO> getProductById(@PathVariable long id){
+        return ResponseEntity.status(HttpStatus.OK).body(this.productsServiceImpls.getProductById(id));
     }
 
 
