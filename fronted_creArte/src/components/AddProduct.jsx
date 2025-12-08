@@ -66,7 +66,7 @@ function AddProduct() {
   axios
     .post("http://localhost:8080/api/products/new", payload, {
       headers: {
-        "Content-Type": "application/json", // obligatorio
+        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
     })
@@ -172,7 +172,7 @@ function AddProduct() {
         </nav>
       </header>
 
-      <main>
+      <main style={{ backgroundColor: "#FFFDF6" }}>
         <div className="container py-5">
           <h1 className="mb-4">Agregar Nuevo Producto</h1>
 

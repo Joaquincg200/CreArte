@@ -12,4 +12,5 @@ public interface IOrdersServiceImpls {
     List<OrdersDTO> getOrderByUserId(Long userId);
     OrdersDTO changeOrderStatus(Long id, UpdateStatusRequest request);
     OrdersDTO cancelOrder(Long id);
+    List<OrdersDTO> getOrderByIdBuyer(Long buyer);
 }

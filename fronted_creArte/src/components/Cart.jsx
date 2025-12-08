@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Header from "./Header";
+import Cookies from "universal-cookie";
 
 export default function Cart() {
   const [cart, setCart] = useState([]);
+  const cookies = new Cookies();
+
+  const session = cookies.get("session");
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("cart")) || [];
@@ -48,18 +52,16 @@ export default function Cart() {
   const shippingCost = subtotal > 10 ? 0 : 3.99;
 
   const total = subtotal + shippingCost;
-  
 
   return (
-    <>
+    <div style={{ backgroundColor: "#FFFDF6", minHeight: "100vh" }}>
       <header>
         <Header />
       </header>
+
       <div className="container my-5">
-        {/* Título arriba derecha */}
-        <div className="d-flex">
+        {/* Título */}
           <h1 className="fw-bold">Tu carrito de compra</h1>
-        </div>
 
         <div className="row mt-4">
           {/* LISTA DE PRODUCTOS */}
@@ -99,7 +101,7 @@ export default function Cart() {
                         {product.price} €
                       </span>
                       <button
-                        className="btn btn-link text-danger p-0 "
+                        className="btn btn-link text-danger p-0"
                         onClick={() => removeFromCart(product.id)}
                         style={{
                           textDecoration: "none",
@@ -130,46 +132,58 @@ export default function Cart() {
                       +
                     </button>
                   </div>
-
-                  {/* Eliminar */}
-                  <div className="col-3 text-end"></div>
                 </div>
               ))
             )}
 
             {/* Volver a tienda */}
-            <Link to="/shop" className="btn btn-primary mt-4">
-              Volver a la tienda
+            <Link to="/shop" className="btn mt-4" style={{ color: "#000000" }}>
+              <i class="bi bi-arrow-left"></i> Volver a la tienda
             </Link>
           </div>
 
           {/* RESUMEN DEL PEDIDO */}
           <div className="col-md-4">
-            <div className="p-4 border rounded shadow-sm">
+            <div
+              className="p-4 border rounded shadow-sm"
+              style={{ backgroundColor: "#F5EDE0" }}
+            >
               <h4 className="fw-bold mb-3">Resumen del pedido</h4>
 
               <div className="d-flex justify-content-between">
                 <span>Subtotal:</span>
-                
                 <span>{subtotal.toFixed(2)} €</span>
               </div>
               <div className="d-flex justify-content-between">
                 <span>Envío:</span>
                 <span>{shippingCost.toFixed(2)} €</span>
               </div>
-                <hr />
+              <hr />
               <div className="d-flex justify-content-between fw-bold mt-2">
                 <span>Total:</span>
                 <span>{total.toFixed(2)} €</span>
               </div>
-
-              <Link className="btn btn-success w-100 mt-4">
-                Realizar pedido
-              </Link>
+              {session ? (
+                <Link
+                  to={"/cart/address"}
+                  className="btn w-100 mt-4"
+                  style={{ backgroundColor: "#C1A16A", color: "#FFFFFF" }}
+                >
+                  Realizar pedido
+                </Link>
+              ) : (
+                <Link
+                  to={"/login"}
+                  className="btn w-100 mt-4"
+                  style={{ backgroundColor: "#C1A16A", color: "#FFFFFF" }}
+                >
+                  Realizar pedido
+                </Link>
+              )}
             </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

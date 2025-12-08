@@ -7,10 +7,23 @@ import org.mapstruct.Mapping;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = IMapperOrderItem.class)
 public interface IMapperOrders {
     @Mapping(target = "idUser", source = "idUser.id")
-    @Mapping(target = "idProducts", expression = "java(order.getIdProducts().stream().map(p -> p.getId()).toList())")
+    @Mapping(target = "buyer", source = "buyer.id")
+    @Mapping(target = "items", source = "items")
+    @Mapping(target = "buyerName", source = "buyer.name")
+
+    @Mapping(target = "name", source = "name")
+    @Mapping(target = "lastname", source = "lastname")
+    @Mapping(target = "phone", source = "phone")
+    @Mapping(target = "address", source = "address")
+    @Mapping(target = "number", source = "number")
+    @Mapping(target = "floor", source = "floor")
+    @Mapping(target = "city", source = "city")
+    @Mapping(target = "postalCode", source = "postalCode")
+
     OrdersDTO orderToOrderDTO(Orders order);
+
     List<OrdersDTO> ordersToOrdersDTO(List<Orders> orders);
 }

@@ -18,6 +18,13 @@ public interface IRepositoryOrders extends JpaRepository<Orders, Long> {
             "WHERE o.idUser.id = :idUser AND p.id = :idProduct")
     boolean existBoughtProduct(@Param("idUser") Long idUser, @Param("idProduct") Long idProduct);
 
+    @Query("SELECT o FROM Orders o WHERE o.buyer.id = :buyerId")
+    List<Orders> findOrdersByBuyerId(@Param("buyerId") Long buyerId);
+
+
+
+
+
 
 
 }

@@ -30,7 +30,20 @@ public class SecurityConfig{
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",
                                 "/webjars/**",
-                                "/api/products/new"
+                                "/api/products/new",
+                                "/api/reviews/product/**",
+                                "/api/reviews/new",
+                                "/api/orders/new",
+                                "/api/orders/**",
+                                "/api/orders/user/**",
+                                "/api/orders/update/**",
+                                "/api/users/update/**",
+                                "/api/users/user/**",
+                                "/api/orders/buyer/**",
+                                "/api/orders/cancel/**",
+                                "/api/chatbot",
+                                "/api/products/random",
+                                "api/orders/**"
                         ).permitAll()
                         .requestMatchers("/api/**").permitAll()
 

@@ -50,7 +50,7 @@ public class UsersController {
         return ResponseEntity.status(HttpStatus.OK).body(this.userServiceImpls.deleteUser(id));
     }
 
-    @PutMapping("/users/update/{id}")
+    @PutMapping("/api/users/update/{id}")
     @Operation(summary = "Actualiza un usuario por su id")
     public ResponseEntity<UsersDTO> updateUser(@RequestBody CreateUserRequest user, @PathVariable long id){
         return ResponseEntity.status(HttpStatus.OK).body(this.userServiceImpls.updateUser(user, id));

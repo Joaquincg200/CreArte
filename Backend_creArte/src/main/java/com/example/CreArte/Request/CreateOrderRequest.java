@@ -1,29 +1,26 @@
 package com.example.CreArte.Request;
-
-import com.example.CreArte.Enums.StatusEnum;
-import io.swagger.v3.oas.annotations.media.Schema;
-
-import java.time.LocalDate;
 import java.util.List;
 
 public class CreateOrderRequest {
     private long idUser;
-    private List<Long> idProducts;
-    private LocalDate order_Date;
-    private StatusEnum status;
-    private double total;
+    private long buyer;
     private List<OrderItemsRequest> orderItems;
 
-    public CreateOrderRequest(long idUser, List<Long> idProducts, LocalDate order_Date, StatusEnum status, double total, List<OrderItemsRequest> orderItems) {
+    private String name;
+    private String lastname;
+    private String phone;
+    private String address;
+    private String number;
+    private String floor;
+    private String city;
+    private String postalCode;
+
+    public CreateOrderRequest() {}
+
+    public CreateOrderRequest(long idUser, long buyer, List<OrderItemsRequest> orderItems) {
         this.idUser = idUser;
-        this.idProducts = idProducts;
-        this.order_Date = order_Date;
-        this.status = status;
-        this.total = total;
-    }
-
-    public CreateOrderRequest() {
-
+        this.orderItems = orderItems;
+        this.buyer = buyer;
     }
 
     public long getIdUser() {
@@ -34,36 +31,12 @@ public class CreateOrderRequest {
         this.idUser = idUser;
     }
 
-    public List<Long> getIdProducts() {
-        return idProducts;
+    public long getBuyer() {
+        return buyer;
     }
 
-    public void setIdProducts(List<Long> idProducts) {
-        this.idProducts = idProducts;
-    }
-
-    public LocalDate getOrder_Date() {
-        return order_Date;
-    }
-
-    public void setOrder_Date(LocalDate order_Date) {
-        this.order_Date = order_Date;
-    }
-
-    public StatusEnum getStatus() {
-        return status;
-    }
-
-    public void setStatus(StatusEnum status) {
-        this.status = status;
-    }
-
-    public double getTotal() {
-        return total;
-    }
-
-    public void setTotal(double total) {
-        this.total = total;
+    public void setBuyer(long buyer) {
+        this.buyer = buyer;
     }
 
     public List<OrderItemsRequest> getOrderItems() {
@@ -74,5 +47,67 @@ public class CreateOrderRequest {
         this.orderItems = orderItems;
     }
 
+    public String getName() {
+        return name;
+    }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getLastname() {
+        return lastname;
+    }
+
+    public void setLastname(String lastname) {
+        this.lastname = lastname;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getNumber() {
+        return number;
+    }
+
+    public void setNumber(String number) {
+        this.number = number;
+    }
+
+    public String getFloor() {
+        return floor;
+    }
+
+    public void setFloor(String floor) {
+        this.floor = floor;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getPostalCode() {
+        return postalCode;
+    }
+
+    public void setPostalCode(String postalCode) {
+        this.postalCode = postalCode;
+    }
 }

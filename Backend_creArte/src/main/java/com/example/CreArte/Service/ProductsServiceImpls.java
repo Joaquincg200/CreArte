@@ -12,8 +12,8 @@ import com.example.CreArte.exception.ExceptionUsersNotFound;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductsServiceImpls implements IProductsServiceImpls {
@@ -55,12 +55,8 @@ public class ProductsServiceImpls implements IProductsServiceImpls {
         Optional<Products> optionalProduct = this.repositoryProducts.findById(id);
         if(optionalProduct.isPresent()){
             Products products = optionalProduct.get();
-            products.setName(request.getName());
-            products.setDescription(request.getDescription());
             products.setPrice(request.getPrice());
-            products.setCategory(request.getCategory());
             products.setStock(request.getStock());
-            products.setImage(request.getImage());
             products.setUpdatedAt(LocalDate.now());
             Products savedProduct = this.repositoryProducts.save(products);
             return this.mapperProducts.productToProductDTO(savedProduct);
@@ -121,6 +117,28 @@ public class ProductsServiceImpls implements IProductsServiceImpls {
             throw new ExceptionProductsNotFound("Producto no encontrado con id: " + id);
         }
     }
+
+    @Override
+    public List<ProductsDTO> getFilteredRandomProducts(String category, Double minPrice, Double maxPrice) {
+
+        // Obtener productos filtrados
+        List<Products> filtered = this.repositoryProducts.filterRandomProducts(category, minPrice, maxPrice);
+
+        // Debug: imprimir cuántos productos se encontraron
+        System.out.println("Filtered products count: " + filtered.size());
+
+        // Mezclar aleatoriamente
+        Collections.shuffle(filtered);
+
+        // Tomar hasta 4 productos
+        List<Products> products = filtered.stream()
+                .limit(4)
+                .collect(Collectors.toList());
+
+        // Mapear a DTOs y devolver
+        return this.mapperProducts.productsToProductsDTO(products);
+    }
+
 
 
 }

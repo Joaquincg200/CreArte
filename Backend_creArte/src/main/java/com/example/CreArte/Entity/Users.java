@@ -22,6 +22,7 @@ public class Users {
     @Enumerated(EnumType.STRING)
     private RoleEnum role;
     private long phone;
+    @Column(columnDefinition = "LONGTEXT")
     private String avatar;
     @OneToMany(mappedBy = "idUser", cascade = CascadeType.ALL)
     private List<Products> products;

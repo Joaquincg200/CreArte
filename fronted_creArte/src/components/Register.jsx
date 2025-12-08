@@ -13,37 +13,39 @@ function Register() {
   const [error, setError] = useState("");
 
   const handleRegister = (e) => {
-  e.preventDefault();
-  setLoading(true);
-  setError("");
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
-  const payload = { name, email, password, role };
-  axios.post("http://localhost:8080/api/users/register", payload)
-    .then((response) => {
-      console.log("Usuario creado:", response.data);
-      navigate("/login");
-    })
-    .catch((error) => {
-      setError("Error al crear usuario: " + (error.response?.data?.message || error.message));
-    })
-    .finally(() => setLoading(false));
-};
-
+    const payload = { name, email, password, role };
+    axios
+      .post("http://localhost:8080/api/users/register", payload)
+      .then((response) => {
+        console.log("Usuario creado:", response.data);
+        navigate("/login");
+      })
+      .catch((error) => {
+        setError(
+          "Error al crear usuario: " +
+            (error.response?.data?.message || error.message)
+        );
+      })
+      .finally(() => setLoading(false));
+  };
 
   return (
     <div
       className="d-flex justify-content-center align-items-center vh-100"
-      style={{ backgroundColor: "#F5EDE0" }}
+      style={{ backgroundColor: "#FFFDF6" }}
     >
       <div
         className="border rounded-4 shadow p-5"
         style={{
-          backgroundColor: "#FAF6F0",
+          backgroundColor: "#F5EDE0",
           borderColor: "#D9CFC3",
           width: "400px",
         }}
       >
-        
         <h2 className="text-center mb-4" style={{ color: "#2B2B2B" }}>
           Crear Cuenta
         </h2>
@@ -149,25 +151,24 @@ function Register() {
           </div>
 
           <button
-    type="submit"
-    className="btn w-100 fw-semibold"
-    style={{
-      backgroundColor: "#E3B23C",
-      color: "#2B2B2B",
-      border: "none",
-    }}
-    disabled={loading}
-  >
-    {loading ? (
-      <>
-        <span className="spinner-border spinner-border-sm me-2"></span>
-        Creando...
-      </>
-    ) : (
-      "Crear cuenta"
-    )}
-  </button>
-
+            type="submit"
+            className="btn w-100 fw-semibold"
+            style={{
+              backgroundColor: "#E3B23C",
+              color: "#2B2B2B",
+              border: "none",
+            }}
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2"></span>
+                Creando...
+              </>
+            ) : (
+              "Crear cuenta"
+            )}
+          </button>
         </form>
         {error && <p className="text-danger mt-2">{error}</p>}
       </div>

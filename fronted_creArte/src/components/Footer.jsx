@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 function Footer() {
   return (
@@ -19,10 +20,9 @@ function Footer() {
             {/* Servicio al cliente */}
             <div className="col-4 d-column align-items-center justify-content-center">
               <h5>Servicio al cliente</h5>
-              <p className="mb-0">Contacto</p>
-              <p className="mb-0">Envíos y devoluciones</p>
-              <p className="mb-0">FAQ</p>
-              <p>Política de privacidad</p>
+              <Link to={"/contact"} className="mb-0 text-decoration-none" style={{color:"#FFFFFF"}}>Contacto</Link><br />
+              <Link to={"/faq"} className="mb-0 text-decoration-none" style={{color:"#FFFFFF"}}>FAQ</Link><br />
+              <Link to={"/privacyPolicy"} className="mb-0 text-decoration-none" style={{color:"#FFFFFF"}}>Política de privacidad</Link>
             </div>
 
             {/* Redes sociales*/}

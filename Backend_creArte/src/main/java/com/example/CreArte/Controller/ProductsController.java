@@ -8,7 +8,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 public class ProductsController {
@@ -64,6 +67,30 @@ public class ProductsController {
     public ResponseEntity<ProductsDTO> getProductById(@PathVariable long id){
         return ResponseEntity.status(HttpStatus.OK).body(this.productsServiceImpls.getProductById(id));
     }
+
+    @GetMapping("/api/products/random")
+    @Operation(summary = "Recibe hasta 4 productos por categoría")
+    public ResponseEntity<Map<String, List<ProductsDTO>>> getProducts(
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(required = false, defaultValue = "4") Integer limit
+    ) {
+        // Llamamos al servicio que devuelve lista de ProductsDTO
+        List<ProductsDTO> productsList = this.productsServiceImpls
+                .getFilteredRandomProducts(category, minPrice, maxPrice)
+                .stream()
+                .limit(limit)
+                .collect(Collectors.toList());
+
+        // Creamos el JSON con clave "products" para Voiceflow
+        Map<String, List<ProductsDTO>> response = new HashMap<>();
+        response.put("products", productsList);
+
+        // Devolvemos OK con el JSON
+        return ResponseEntity.ok(response);
+    }
+
 
 
 

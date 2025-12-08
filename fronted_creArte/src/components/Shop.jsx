@@ -3,6 +3,7 @@ import Header from "./Header";
 import Footer from "./Footer";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import VoiceflowWidget from "./VoiceflowWidget";
 
 function Shop() {
   const [products, setProducts] = useState([]);
@@ -76,7 +77,7 @@ function Shop() {
   };
 
   return (
-    <div style={{ backgroundColor: "#F5EDE0" }}>
+    <div style={{ backgroundColor: "#FFFDF6" }}>
       <header style={{ position: "sticky", top: "0", zIndex: "1000" }}>
         <Header />
       </header>
@@ -241,6 +242,7 @@ function Shop() {
           </div>
         </div>
       </div>
+      <VoiceflowWidget />
       <footer>
         <Footer />
       </footer>

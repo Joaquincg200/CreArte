@@ -52,17 +52,28 @@ public class UserServiceImpls implements IUserServiceImpls{
         Optional<Users> optionalUser = this.repositoryUsers.findById(id);
         if (optionalUser.isPresent()) {
             Users user = optionalUser.get();
+
             user.setName(request.getName());
-            user.setPassword(BCrypt.hashpw(request.getPassword(), BCrypt.gensalt()));
-            user.setAvatar(request.getAvatar());
             user.setPhone(request.getPhone());
+
+            // Solo actualizar contraseña si no es null ni vacía
+            if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+                user.setPassword(BCrypt.hashpw(request.getPassword(), BCrypt.gensalt()));
+            }
+
+            // Solo actualizar avatar si viene uno nuevo
+            if (request.getAvatar() != null && !request.getAvatar().isEmpty()) {
+                user.setAvatar(request.getAvatar());
+            }
+
             Users savedUser = this.repositoryUsers.save(user);
             return this.mapperUsers.userToUsserDTO(savedUser);
-        }else{
-            throw  new ExceptionUsersNotFound("El usuario con el id "+ id + " no fue encontrado.");
+        } else {
+            throw new ExceptionUsersNotFound("El usuario con el id " + id + " no fue encontrado.");
         }
-
     }
+
+
 
     @Override
     public UsersDTO deleteUser(long id) {

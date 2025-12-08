@@ -14,6 +14,8 @@ public interface IProductsServiceImpls {
     List<ProductsDTO> getProductsByCategory(String category);
     List<ProductsDTO> searchProducts(String keyword);
     ProductsDTO getProductById(long id);
+    List<ProductsDTO> getFilteredRandomProducts(String category, Double minPrice, Double maxPrice);
+
 
 
 

@@ -2,26 +2,17 @@ package com.example.CreArte.Request;
 
 public class OrderItemsRequest {
     private Long productId;
-    private Integer quantity;
+    private int quantity;
 
-    public OrderItemsRequest(Long productId, Integer quantity) {
+    public OrderItemsRequest() {}
+    public OrderItemsRequest(Long productId, int quantity) {
         this.productId = productId;
         this.quantity = quantity;
     }
 
-    public Long getProductId() {
-        return productId;
-    }
+    public Long getProductId() { return productId; }
+    public void setProductId(Long productId) { this.productId = productId; }
 
-    public void setProductId(Long productId) {
-        this.productId = productId;
-    }
-
-    public Integer getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
-    }
+    public int getQuantity() { return quantity; }
+    public void setQuantity(int quantity) { this.quantity = quantity; }
 }

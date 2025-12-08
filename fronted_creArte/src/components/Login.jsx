@@ -75,11 +75,11 @@ function Login() {
   return (
     <div
       className="d-flex justify-content-center align-items-center vh-100"
-      style={{ backgroundColor: "#F5EDE0" }}
+      style={{ backgroundColor: "#FFFDF6" }}
     >
       <div
         className="border rounded-4 shadow p-5"
-        style={{ backgroundColor: "#FAF6F0", width: "400px" }}
+        style={{ backgroundColor: "#F5EDE0", width: "400px" }}
       >
         <h2 className="text-center mb-4" style={{ color: "#2B2B2B" }}>
           Iniciar sesión

@@ -1,21 +1,38 @@
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Cookies from "universal-cookie";
-import Footer from "./Footer";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import { db } from "../messaging/firebaseConfig";
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  orderBy,
+  limit,
+} from "firebase/firestore";
 
 function SellerDashboard() {
+  const [chats, setChats] = useState([]);
+  const [hasUnread, setHasUnread] = useState(false);
   const [openMenu, setOpenMenu] = useState(false);
   const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
   const navigate = useNavigate();
   const cookies = new Cookies();
 
   const session = cookies.get("session");
-
   const user = cookies.get("user");
-  const userName = user?.name;
-  const userImg = user?.img;
-  // Redirigir si no hay sesión o no es vendedor
+  const userId = user?.id;
+
   useEffect(() => {
     if (!user || user.role !== "VENDEDOR" || !session) {
       navigate("/");
@@ -25,33 +42,149 @@ function SellerDashboard() {
   const handleLogout = () => {
     cookies.remove("session", { path: "/" });
     cookies.remove("user", { path: "/" });
-    window.location.href = "/login";
+    window.location.href = "/";
   };
 
   useEffect(() => {
     axios
       .get("http://localhost:8080/api/products/user/" + user.id)
-      .then((response) => {
-        setProducts(response.data);
-      })
-      .catch((error) => {
-        console.error("Error al obtener productos:", error);
-      });
+      .then((res) => setProducts(res.data))
+      .catch((err) => console.error(err));
   }, [user.id]);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:8080/api/orders/user/" + user.id)
+      .then((res) => setOrders(res.data))
+      .catch((err) => console.error(err));
+  }, [user.id]);
+
+  const advanceStatus = (order) => {
+    let newStatus = "";
+    if (order.status === "PENDIENTE") newStatus = "ENVIADO";
+    else if (order.status === "ENVIADO") newStatus = "ENTREGADO";
+    else return;
+
+    axios
+      .put(`http://localhost:8080/api/orders/update/${order.id}`, {
+        status: newStatus,
+      })
+      .then(() =>
+        setOrders((prev) =>
+          prev.map((o) => (o.id === order.id ? { ...o, status: newStatus } : o))
+        )
+      )
+      .catch((err) => console.error(err));
+  };
+
+  const totalOrders = orders.length;
+  const pendingOrders = orders.filter((o) => o.status === "PENDIENTE").length;
+  const sentOrders = orders.filter((o) => o.status === "ENVIADO").length;
+  const deliveredOrders = orders.filter((o) => o.status === "ENTREGADO").length;
+  const totalIncome = orders
+    .filter((o) => o.status === "ENTREGADO")
+    .reduce((sum, o) => sum + o.total, 0);
+  const productsLowStock = products.filter((p) => p.stock < 5);
+
+  // Colores artesanales
+  const statusColors = {
+    PENDIENTE: "#FFD27F",
+    ENVIADO: "#D18B59",
+    ENTREGADO: "#6B4226",
+  };
+
+  const ordersStatusData = [
+    { name: "Pendiente", value: pendingOrders },
+    { name: "Enviado", value: sentOrders },
+    { name: "Entregado", value: deliveredOrders },
+  ];
+
+  const [users, setUsers] = useState("");
+  useEffect(() => {
+    axios
+      .get(`http://localhost:8080/api/users/user/${user?.id}`)
+      .then((response) => {
+        // Podrías actualizar la cookie si quieres la imagen más reciente
+        const updatedUser = { ...user, img: response.data.avatar || user.img };
+        cookies.set("user", updatedUser, { path: "/" });
+        setUsers(response.data);
+      })
+      .catch((err) => console.error(err));
+  }, []);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const chatsRef = collection(db, "chats");
+    const q = query(chatsRef, where("participants", "array-contains", userId));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      let unreadFound = false;
+
+      snapshot.docs.forEach((docSnap) => {
+        const chatData = { id: docSnap.id, ...docSnap.data() };
+        const messagesRef = collection(db, `chats/${chatData.id}/messages`);
+        const lastMessageQuery = query(
+          messagesRef,
+          orderBy("createdAt", "desc"),
+          limit(1)
+        );
+
+        onSnapshot(lastMessageQuery, (msgSnap) => {
+          if (!msgSnap.empty) {
+            const lastMsg = msgSnap.docs[0].data();
+
+            // Comprobar si hay mensajes no leídos
+            if (
+              lastMsg.senderId !== userId &&
+              !lastMsg.readBy?.includes(userId)
+            ) {
+              unreadFound = true;
+              setHasUnread(true);
+            } else if (!unreadFound) {
+              setHasUnread(false);
+            }
+
+            setChats((prev) => {
+              const other = prev.filter((c) => c.id !== chatData.id);
+              return [...other, { ...chatData, lastMessage: lastMsg }];
+            });
+          } else {
+            // Chat sin mensajes
+            setChats((prev) => {
+              const other = prev.filter((c) => c.id !== chatData.id);
+              return [...other, { ...chatData, lastMessage: null }];
+            });
+          }
+        });
+      });
+    });
+
+    return () => unsubscribe();
+  }, [userId]);
+
+  if(user.role === "COMPRADOR") {
+    navigate("/");
+  }
 
   return (
     <div>
+      {/* HEADER */}
       <header className="border-bottom" style={{ backgroundColor: "#C77C57" }}>
         <nav className="navbar navbar-expand-lg w-75 mx-auto container">
           <div className="container-fluid px-4">
             {/* --- IZQUIERDA: Logo --- */}
             <div className="d-flex align-items-center justify-content-between w-100">
               <Link
-                to="/sellerDashboard"
-                className="navbar-brand fw-bold me-2"
                 style={{ color: "#FFFFFF" }}
+                className="navbar-brand fw-bold me-2"
+                to="/sellerDashboard"
               >
-                creArte
+                <img
+                  src="/img/unnamed-removebg-preview.png"
+                  alt=""
+                  style={{ width: "40px", height: "40px" }}
+                />
               </Link>
 
               {/* --- DERECHA: Cuenta + Carrito --- */}
@@ -63,11 +196,31 @@ function SellerDashboard() {
                   style={{ height: "40px", cursor: "pointer" }}
                 >
                   <>
-                    <img
-                      src={userImg || "img/sbcf-default-avatar.webp"}
-                      className="img-fluid rounded-circle h-75 me-2 mx-2"
-                      alt="avatar"
-                    />
+                    {users?.avatar ? (
+                      <img
+                        src={users?.avatar}
+                        className="img-fluid rounded-circle me-2 mx-2"
+                        alt="Foto usuario"
+                        style={{
+                          width: "30px",
+                          height: "30px",
+                          objectFit: "cover",
+                        }}
+                      />
+                    ) : (
+                      <div
+                        className="rounded-circle bg-secondary d-flex justify-content-center align-items-center me-2 mx-2"
+                        style={{
+                          width: "30px",
+                          height: "30px",
+                          color: "white",
+                          fontWeight: "600",
+                          fontSize: "14px",
+                        }}
+                      >
+                        {users?.name?.charAt(0)?.toUpperCase() || "U"}
+                      </div>
+                    )}
                     <span
                       className="me-2"
                       style={{
@@ -77,7 +230,7 @@ function SellerDashboard() {
                         whiteSpace: "nowrap",
                       }}
                     >
-                      {userName}
+                      {users?.name}
                     </span>
 
                     {openMenu && (
@@ -94,7 +247,7 @@ function SellerDashboard() {
                         <ul className="list-unstyled mb-0">
                           <li>
                             <Link
-                              to="/perfil"
+                              to={`/sellerDashboard/profile/${user.id}`}
                               className="dropdown-item py-2 px-3 text-dark text-decoration-none d-block"
                             >
                               <i className="bi bi-person me-2"></i> Perfil
@@ -133,121 +286,191 @@ function SellerDashboard() {
                 <hr />
 
                 <Link
-                  to="/sellerDashboard/misProductos"
+                  to="/sellerDashboard/products"
                   className="text-decoration-none"
                 >
-                  <h5 className="mx-2 sidebar-item">Mis productos</h5>
+                  <h5
+                    className="mx-2 sidebar-item"
+                    style={{ color: "#000000" }}
+                  >
+                    Mis productos
+                  </h5>
                 </Link>
 
                 <Link
-                  to="/sellerDashboard/misPedidos"
+                  to="/sellerDashboard/orders"
                   className="text-decoration-none"
                 >
-                  <h5 className="mx-2 mt-3 sidebar-item">Pedidos</h5>
+                  <h5
+                    className="mx-2 mt-3 sidebar-item"
+                    style={{ color: "#000000" }}
+                  >
+                    Pedidos
+                  </h5>
                 </Link>
+
+                <div className="position-relative">
+                  <h5
+                    className="mx-2 mt-3 sidebar-item"
+                    style={{ color: "#000000", cursor: "pointer" }}
+                    onClick={() => navigate("/sellerDashboard/chats")}
+                  >
+                    Chats
+                  </h5>
+                  {hasUnread && (
+                    <span
+                      style={{
+                        width: "10px",
+                        height: "10px",
+                        borderRadius: "50%",
+                        backgroundColor: "red",
+                        position: "absolute",
+                        top: "8px",
+                        right: "10px",
+                        display: "inline-block",
+                      }}
+                    ></span>
+                  )}
+                </div>
               </div>
             </div>
-
-            {/* Contenido principal */}
+            {/* CONTENIDO PRINCIPAL */}
             <div className="col-12 col-md-9">
-              <div
-                className="p-4 rounded shadow"
-                style={{ backgroundColor: "#F5EDE0" }}
-              >
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                  <h2 className="fw-bold">Mis Productos</h2>
-                  <Link to={"/sellerDashboard/add"}><button
-                    className="btn rounded-pill px-4 py-2"
-                    style={{
-                      backgroundColor: "#D28C64",
-                      color: "#FFFFFF",
-                      fontWeight: "500",
-                    }}
-                  >
-                    <i className="bi bi-plus-circle me-2"></i>
-                    Añadir nuevo producto
-                  </button></Link>
+              {/* Cards métricas */}
+              <div className="row mb-4">
+                <div className="col-md-3">
+                  <div className="card text-center shadow-sm p-3">
+                    <h5>Total pedidos</h5>
+                    <h3>{totalOrders}</h3>
+                  </div>
                 </div>
-
-                <table
-                  className="table align-middle table-hover shadow-sm"
-                  style={{
-                    backgroundColor: "#FFFDF6",
-                    borderRadius: "12px",
-                    overflow: "hidden",
-                  }}
-                >
-                  <thead
-                    style={{
-                      backgroundColor: "#E8DCC8",
-                      color: "#6B4F3F",
-                      fontWeight: "600",
-                    }}
+                <div className="col-md-3">
+                  <div
+                    className="card text-center shadow-sm p-3"
+                    style={{ backgroundColor: "#FFD27F", color: "#4B2E1E" }}
                   >
+                    <h5>Pendientes</h5>
+                    <h3>{pendingOrders}</h3>
+                  </div>
+                </div>
+                <div className="col-md-3">
+                  <div
+                    className="card text-center shadow-sm p-3"
+                    style={{ backgroundColor: "#D18B59", color: "#FFF" }}
+                  >
+                    <h5>Enviados</h5>
+                    <h3>{sentOrders}</h3>
+                  </div>
+                </div>
+                <div className="col-md-3">
+                  <div
+                    className="card text-center shadow-sm p-3"
+                    style={{ backgroundColor: "#6B4226", color: "#FFF" }}
+                  >
+                    <h5>Ingresos</h5>
+                    <h3>{totalIncome} €</h3>
+                  </div>
+                </div>
+              </div>
+
+              {/* PieChart */}
+              <div className="card p-3 shadow-sm mb-4">
+                <h5 className="mb-3">Pedidos por estado</h5>
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie
+                      data={ordersStatusData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      label
+                    >
+                      {ordersStatusData.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={
+                            entry.name === "Pendiente"
+                              ? statusColors.PENDIENTE
+                              : entry.name === "Enviado"
+                              ? statusColors.ENVIADO
+                              : statusColors.ENTREGADO
+                          }
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Tabla pedidos recientes */}
+              <div className="card p-3 shadow-sm mb-4">
+                <h5 className="mb-3">Pedidos recientes</h5>
+                <table className="table table-hover align-middle">
+                  <thead className="bg-light">
                     <tr>
-                      <th className="text-center">Producto</th>
-                      <th className="text-center">ID</th>
-                      <th className="text-center">Stock</th>
-                      <th className="text-center">Precio</th>
-                      <th className="text-center">Acciones</th>
+                      <th>ID</th>
+                      <th>Total</th>
+                      <th>Estado</th>
                     </tr>
                   </thead>
-
                   <tbody>
-                    {products.map((product) => (
-                      <tr
-                        key={product.id}
-                        style={{
-                          borderBottom: "1px solid #f0e6d9",
-                        }}
-                      >
-                        <td className="d-flex justify-content-center align-items-center">
-                          <img
-                            src={product.image || "img/shopping.webp"}
-                            alt=""
-                            className="rounded me-3 shadow-sm"
-                            style={{
-                              height: "65px",
-                              width: "65px",
-                              objectFit: "cover",
-                            }}
-                          />
-                          <span style={{ fontWeight: "500", color: "#5A3E2B" }}>
-                            {product.name}
-                          </span>
-                        </td>
-
-                        <td
-                          className="text-center"
-                          style={{ color: "#7A5A46" }}
-                        >
-                          {product.id}
-                        </td>
-                        <td
-                          className="text-center"
-                          style={{ color: "#7A5A46" }}
-                        >
-                          {product.stock}
-                        </td>
-                        <td
-                          className="text-center"
-                          style={{ color: "#7A5A46" }}
-                        >
-                          {product.price} €
-                        </td>
-
-                        <td className="text-center">
-                          {/* Edit button con color cálido */}
-                          <i className="bi bi-pencil text-success me-4"></i>
-
-                          {/* Delete button armonizado */}
-                          <i className="bi bi-trash3 text-danger"></i>
+                    {orders.slice(-5).map((order) => (
+                      <tr key={order.id}>
+                        <td>{order.id}</td>
+                        <td>{order.total} €</td>
+                        <td>
+                          <button
+                            className={`btn btn-sm ${
+                              order.status === "PENDIENTE"
+                                ? "btn-warning"
+                                : order.status === "ENVIADO"
+                                ? "btn-orange"
+                                : "btn-success"
+                            }`}
+                            onClick={() => advanceStatus(order)}
+                            disabled={order.status === "ENTREGADO"}
+                            style={
+                              order.status === "ENTREGADO"
+                                ? { cursor: "not-allowed", opacity: 0.7 }
+                                : {}
+                            }
+                          >
+                            {order.status}
+                          </button>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
+
+              {/* Productos con stock bajo */}
+              {productsLowStock.length > 0 && (
+                <div className="card p-3 shadow-sm mb-4">
+                  <h5 className="mb-3 text-danger">Productos con stock bajo</h5>
+                  <div className="d-flex flex-wrap gap-3">
+                    {productsLowStock.map((p) => (
+                      <div
+                        key={p.id}
+                        className="card p-2"
+                        style={{ width: "120px" }}
+                      >
+                        <img
+                          src={p.image}
+                          alt={p.name}
+                          className="img-fluid rounded mb-2"
+                        />
+                        <p className="mb-0 text-truncate">{p.name}</p>
+                        <small>Stock: {p.stock}</small>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -49,5 +49,11 @@ public class OrdersController {
         return ResponseEntity.status(HttpStatus.OK).body(this.ordersServiceImpls.cancelOrder(id));
     }
 
+    @GetMapping("/api/orders/buyer/{idBuyer}")
+    @Operation()
+    public ResponseEntity<List<OrdersDTO>> getOrderByIdBuyer(@PathVariable Long idBuyer) {
+        return ResponseEntity.status(HttpStatus.OK).body(this.ordersServiceImpls.getOrderByIdBuyer(idBuyer));
+    }
+
 
 }

@@ -1,6 +1,7 @@
 package com.example.CreArte.Service;
 
 import com.example.CreArte.Dto.OrdersDTO;
+import com.example.CreArte.Entity.OrderItem;
 import com.example.CreArte.Entity.Orders;
 import com.example.CreArte.Entity.Products;
 import com.example.CreArte.Entity.Users;
@@ -21,6 +22,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class OrdersServiceImpls implements IOrdersServiceImpls{
@@ -40,56 +42,77 @@ public class OrdersServiceImpls implements IOrdersServiceImpls{
     public OrdersDTO createOrder(CreateOrderRequest request) {
         Orders order = new Orders();
 
-        Optional<Users> usersOptional = repositoryUsers.findById(request.getIdUser());
-        if(usersOptional.isPresent()){
-            Users user = usersOptional.get();
-            order.setIdUser(user);
-        }else{
-            throw new ExceptionUsersNotFound("Usuario no encontrado con id: " + request.getIdUser());
+        // 1️⃣ Asignar comprador (buyer)
+        Optional<Users> buyerOpt = repositoryUsers.findById(request.getBuyer());
+        if (buyerOpt.isPresent()) {
+            order.setBuyer(buyerOpt.get());
+        } else {
+            throw new ExceptionUsersNotFound("Usuario comprador no encontrado con id: " + request.getBuyer());
         }
 
-        List<Products> products = new ArrayList<>();
-        for (Long id : request.getIdProducts()) {
-            Optional<Products> productsOptional = repositoryProducts.findById(id);
-            if(productsOptional.isPresent()){
-                Products product = productsOptional.get();
-                products.add(product);
-            } else{
-                throw new ExceptionOrderNotFound("Producto no encontrado con id: " + id);
-            }
+        // 2️⃣ Asignar vendedor (idUser)
+        Optional<Users> sellerOpt = repositoryUsers.findById(request.getIdUser());
+        if (sellerOpt.isPresent()) {
+            order.setIdUser(sellerOpt.get());
+        } else {
+            throw new ExceptionUsersNotFound("Vendedor no encontrado con id: " + request.getIdUser());
         }
-        order.setIdProducts(products);
 
-        double total = 00.0;
+        // 3️⃣ Crear los OrderItems y actualizar stock
+        List<OrderItem> orderItems = new ArrayList<>();
+        double total = 0;
+        for (OrderItemsRequest itemReq : request.getOrderItems()) {
+            Optional<Products> productOpt = repositoryProducts.findById(itemReq.getProductId());
+            if (productOpt.isPresent()) {
+                Products product = productOpt.get();
 
-        for (OrderItemsRequest item: request.getOrderItems()) {
-            Optional<Products> productsOptional = this.repositoryProducts.findById(item.getProductId());
+                // Crear OrderItem
+                OrderItem orderItem = new OrderItem();
+                orderItem.setProduct(product);
+                orderItem.setQuantity(itemReq.getQuantity());
+                orderItem.setOrder(order); // Muy importante: vincula el OrderItem a la orden
+                orderItems.add(orderItem);
 
-            if(productsOptional.isPresent()){
-                Products products1 = productsOptional.get();
-                total += products1.getPrice() * item.getQuantity();
+                // Calcular total
+                total += product.getPrice() * itemReq.getQuantity();
 
-                if(products1.getStock() >= item.getQuantity()){
-                    int stock = products1.getStock() - item.getQuantity();
-                    products1.setStock(stock);
-                    repositoryProducts.save(products1);
+                // Actualizar stock
+                if (product.getStock() >= itemReq.getQuantity()) {
+                    product.setStock(product.getStock() - itemReq.getQuantity());
+                    repositoryProducts.save(product);
+                } else {
+                    throw new ExceptionOrderNotFound("Stock insuficiente para el producto: " + product.getName());
                 }
-            } else{
-                throw new ExceptionOrderNotFound("Producto no encontrado con id: " + item.getProductId());
+            } else {
+                throw new ExceptionOrderNotFound("Producto no encontrado con id: " + itemReq.getProductId());
             }
-
         }
 
+        // 4️⃣ Asignar los OrderItems a la orden
+        order.setItems(orderItems);
+
+        // 5️⃣ Asignar dirección directamente desde el request
+        order.setName(request.getName());
+        order.setLastname(request.getLastname());
+        order.setPhone(request.getPhone());
+        order.setAddress(request.getAddress());
+        order.setNumber(request.getNumber());
+        order.setFloor(request.getFloor());
+        order.setCity(request.getCity());
+        order.setPostalCode(request.getPostalCode());
+
+        // 6️⃣ Otros datos de la orden
         order.setTotal(total);
         order.setStatus(StatusEnum.PENDIENTE);
         order.setOrder_Date(LocalDate.now());
 
-        Orders saved = repositoryOrders.save(order);
+        // 7️⃣ Guardar la orden
+        Orders savedOrder = repositoryOrders.save(order);
 
-        Orders loaded = repositoryOrders.findById(saved.getId()).orElseThrow();
-
-        return mapperOrders.orderToOrderDTO(loaded);
+        // 8️⃣ Retornar DTO
+        return mapperOrders.orderToOrderDTO(savedOrder);
     }
+
 
     @Override
     public OrdersDTO getOrderById(Long id) {
@@ -126,11 +149,13 @@ public class OrdersServiceImpls implements IOrdersServiceImpls{
         Optional<Orders> optionalOrder = this.repositoryOrders.findById(id);
         if (optionalOrder.isPresent()){
             Orders order = optionalOrder.get();
-            if ("ENVIADO".equals(order.getStatus()) || "CANCELADO".equals(order.getStatus())){
+            if (order.getStatus() == StatusEnum.ENVIADO || order.getStatus() == StatusEnum.CANCELADO){
                 throw new ExceptionChangeOrderStatus("No se ha podido cancelar el pedido porque se ha enviado o cancelado");
             }
-            for(Products product: order.getIdProducts()){
-                product.setStock((product.getStock()) + 1);
+
+            for(OrderItem item : order.getItems()) {
+                Products product = item.getProduct();
+                product.setStock(product.getStock() + item.getQuantity());
                 repositoryProducts.save(product);
             }
 
@@ -139,6 +164,12 @@ public class OrdersServiceImpls implements IOrdersServiceImpls{
             Orders cancelledOrder = this.repositoryOrders.save(order);
             return this.mapperOrders.orderToOrderDTO(cancelledOrder);
         }
-        throw new ExceptionOrderNotFound("No se ha econtrado el pedido con la id " + id);
+        throw new ExceptionOrderNotFound("No se ha encontrado el pedido con la id " + id);
     }
+
+    @Override
+    public List<OrdersDTO> getOrderByIdBuyer(Long buyer) {
+        return this.mapperOrders.ordersToOrdersDTO(this.repositoryOrders.findOrdersByBuyerId(buyer));
+    }
+
 }
